@@ -142,11 +142,14 @@ export class CreateTemplateUseCase {
       }
     }
 
-    // Verificar que no haya llaves sueltas (sin su par)
-    const singleOpenBrace = /\{(?!\{)/g
-    const singleCloseBrace = /(?<!\})\}/g
+    // Primero, remover todas las variables válidas del texto
+    const textWithoutValidVars = text.replace(/\{\{[a-zA-Z0-9_]+\}\}/g, '')
 
-    if (singleOpenBrace.test(text) || singleCloseBrace.test(text)) {
+    // Ahora verificar si quedan llaves sueltas después de remover las variables válidas
+    const singleOpenBrace = /\{(?!\{)/
+    const singleCloseBrace = /(?<!\})\}/
+
+    if (singleOpenBrace.test(textWithoutValidVars) || singleCloseBrace.test(textWithoutValidVars)) {
       return {
         isValid: false,
         error: 'Single braces found: use {{ }} for variables'
