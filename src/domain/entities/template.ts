@@ -4,7 +4,7 @@ export class Template {
     private _subject: string,
     private _htmlBody: string,
     private readonly _microserviceOwner: string,
-    private readonly _textBody: string | null,
+    private _textBody: string | null,
     private _deletedAt: Date | null
   ) {}
 
@@ -83,6 +83,10 @@ export class Template {
       throw new Error('HTML body cannot be empty')
     }
     this._htmlBody = newHtmlBody
+  }
+
+  updateTextBody(newTextBody: string | null): void {
+    this._textBody = newTextBody
   }
 
 }

@@ -10,6 +10,7 @@ export class MailEvent {
     private readonly _templateId: string,
     private readonly _to: string,
     private readonly _from: string,
+    private readonly _templateData: string, // JSON stringificado
     private readonly _scheduledFor: Date,
     private readonly _retries: number,
     private _retryCount: number,
@@ -21,6 +22,7 @@ export class MailEvent {
     templateId: string
     to: string
     from: string
+    templateData: string
     scheduledFor?: Date
     retries?: number
   }): MailEvent {
@@ -36,6 +38,22 @@ export class MailEvent {
     }
     if (!params.from?.trim()) {
       throw new Error('From address is required')
+    }
+    if (!params.templateData?.trim()) {
+      throw new Error('Template data is required')
+    }
+
+    // Validar que templateData sea un JSON válido
+    try {
+      const parsed = JSON.parse(params.templateData)
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        throw new Error('Template data must be a JSON object')
+      }
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        throw new Error('Template data must be a valid JSON string')
+      }
+      throw error
     }
 
     // Validar formato de email
@@ -61,6 +79,7 @@ export class MailEvent {
       params.templateId,
       params.to,
       params.from,
+      params.templateData,
       scheduledFor,
       retries,
       0, // retryCount empieza en 0
@@ -73,6 +92,7 @@ export class MailEvent {
     templateId: string
     to: string
     from: string
+    templateData: string
     scheduledFor: Date
     retries: number
     retryCount: number
@@ -83,6 +103,7 @@ export class MailEvent {
       params.templateId,
       params.to,
       params.from,
+      params.templateData,
       params.scheduledFor,
       params.retries,
       params.retryCount,
@@ -105,6 +126,10 @@ export class MailEvent {
 
   get from(): string {
     return this._from
+  }
+
+  get templateData(): string {
+    return this._templateData
   }
 
   get scheduledFor(): Date {

@@ -1,5 +1,5 @@
-import { CreateTemplateUseCase } from '../createTemplate.ts'
-import type { CreateTemplateInput } from '../createTemplate.ts'
+import { CreateTemplateUseCase } from '../template/createTemplate.ts'
+import type { CreateTemplateInput } from '../template/createTemplate.ts'
 import type { TemplateRepository } from '../../../domain/repositories/templateRepository.ts'
 import { Template } from '../../../domain/entities/template.ts'
 
