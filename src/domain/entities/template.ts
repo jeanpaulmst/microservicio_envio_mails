@@ -15,7 +15,7 @@ export class Template {
     microserviceOwner: string
     textBody?: string
   }): Template {
-    
+
     if (!params.templateId?.trim()) {
       throw new Error('Template ID is required')
     }
@@ -36,6 +36,24 @@ export class Template {
       params.microserviceOwner,
       params.textBody || null,
       null // deletedAt empieza en null
+    )
+  }
+
+  static reconstitute(params: {
+    templateId: string
+    subject: string
+    htmlBody: string
+    microserviceOwner: string
+    textBody: string | null
+    deletedAt: Date | null
+  }): Template {
+    return new Template(
+      params.templateId,
+      params.subject,
+      params.htmlBody,
+      params.microserviceOwner,
+      params.textBody,
+      params.deletedAt
     )
   }
 
