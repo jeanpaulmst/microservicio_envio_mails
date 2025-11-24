@@ -56,7 +56,7 @@ export class CreateMicroserviceAuthUseCase {
       const microserviceAuth = MicroserviceAuth.create({
         key: input.key,
         microserviceOwner: input.microserviceOwner,
-        active: input.active ? true : false
+        ...(input.active !== undefined && { active: input.active })
       })
 
       // Guardar en el repositorio

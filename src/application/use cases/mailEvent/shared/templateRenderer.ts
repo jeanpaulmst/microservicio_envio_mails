@@ -13,7 +13,9 @@ export function extractTemplateVariables(text: string): string[] {
   const variables = new Set<string>()
 
   for (const match of matches) {
-    variables.add(match[1])
+    if (match[1]) {
+      variables.add(match[1])
+    }
   }
 
   return Array.from(variables)
@@ -114,7 +116,7 @@ export function renderTemplate(
   // Reemplazar cada variable con su valor
   for (const [key, value] of Object.entries(templateData)) {
     const variablePattern = new RegExp(`\\{\\{${key}\\}\\}`, 'g')
-    rendered = rendered.replace(variablePattern, String(value))
+    rendered = rendered.replace(variablePattern, String(value ?? ''))
   }
 
   return rendered

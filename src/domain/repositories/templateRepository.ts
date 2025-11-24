@@ -1,4 +1,4 @@
-import { Template } from '../entities/template.ts'
+import { Template } from '../entities/template.js'
 
 export interface TemplateRepository {
   save(template: Template): Promise<void>

@@ -1,4 +1,4 @@
-import { MailEvent } from '../entities/mailEvent.ts'
+import { MailEvent } from '../entities/mailEvent.js'
 
 export interface mailEventRepository {
   save(mailEvent: MailEvent): Promise<void>

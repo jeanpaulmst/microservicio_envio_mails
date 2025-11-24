@@ -59,8 +59,9 @@ describe('CreateMicroserviceAuthUseCase', () => {
       expect(result.key).toBe('notification-service-key-456')
 
       // Verificar que el microserviceAuth guardado tenga active = true por defecto
-      const savedAuth = mockRepository.save.mock.calls[0][0]
-      expect(savedAuth.active).toBe(true)
+      const savedAuth = mockRepository.save.mock.calls[0]?.[0]
+      expect(savedAuth).toBeDefined()
+      expect(savedAuth?.active).toBe(true)
     })
 
     it('debería crear una autenticación con active = false', async () => {
@@ -79,8 +80,9 @@ describe('CreateMicroserviceAuthUseCase', () => {
       expect(result.success).toBe(true)
 
       // Verificar que el microserviceAuth guardado tenga active = false
-      const savedAuth = mockRepository.save.mock.calls[0][0]
-      expect(savedAuth.active).toBe(false)
+      const savedAuth = mockRepository.save.mock.calls[0]?.[0]
+      expect(savedAuth).toBeDefined()
+      expect(savedAuth?.active).toBe(false)
     })
   })
 
@@ -264,13 +266,13 @@ describe('CreateMicroserviceAuthUseCase', () => {
 
       // Verificar que se llamó al save con una entidad válida
       expect(mockRepository.save).toHaveBeenCalledTimes(1)
-      const savedAuth = mockRepository.save.mock.calls[0][0]
+      const savedAuth = mockRepository.save.mock.calls[0]?.[0]
 
       expect(savedAuth).toBeInstanceOf(MicroserviceAuth)
-      expect(savedAuth.key).toBe('valid-key-123')
-      expect(savedAuth.microserviceOwner).toBe('valid-service')
-      expect(savedAuth.active).toBe(true)
-      expect(savedAuth.createdAt).toBeInstanceOf(Date)
+      expect(savedAuth?.key).toBe('valid-key-123')
+      expect(savedAuth?.microserviceOwner).toBe('valid-service')
+      expect(savedAuth?.active).toBe(true)
+      expect(savedAuth?.createdAt).toBeInstanceOf(Date)
     })
   })
 })

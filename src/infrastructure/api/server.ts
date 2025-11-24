@@ -1,0 +1,55 @@
+import express, { type Express, type Request, type Response, type NextFunction } from 'express';
+import { createTemplateRoutes } from './routes/templateRoutes.js';
+import { createAuthRoutes } from './routes/authRoutes.js';
+import { MongoTemplateRepository } from '../persistence/mongodb/repositories/MongoTemplateRepository.js';
+import { MongoMicroserviceAuthRepository } from '../persistence/mongodb/repositories/MongoMicroserviceAuthRepository.js';
+
+export function createApp(): Express {
+  const app = express();
+
+  // Middleware para parsear JSON
+  app.use(express.json());
+
+  // Middleware para logging de requests
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    next();
+  });
+
+  // Instanciar repositorios
+  const templateRepository = new MongoTemplateRepository();
+  const microserviceAuthRepository = new MongoMicroserviceAuthRepository();
+
+  // Rutas
+  app.use('/api/templates', createTemplateRoutes(templateRepository, microserviceAuthRepository));
+  app.use('/api/auth', createAuthRoutes(microserviceAuthRepository));
+
+  // Health check
+  app.get('/health', (req: Request, res: Response) => {
+    res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      service: 'mail-service'
+    });
+  });
+
+  // 404 handler
+  app.use((req: Request, res: Response) => {
+    res.status(404).json({
+      success: false,
+      message: `Route ${req.method} ${req.path} not found`
+    });
+  });
+
+  // Error handler global
+  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    console.error('Unhandled error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: err.message
+    });
+  });
+
+  return app;
+}

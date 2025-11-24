@@ -4,7 +4,7 @@ import {
   validateTemplateData,
   renderTemplate,
   renderFullTemplate
-} from '../templateRenderer'
+} from '../templateRenderer.js'
 
 describe('Template Renderer Functions', () => {
   describe('extractTemplateVariables', () => {
