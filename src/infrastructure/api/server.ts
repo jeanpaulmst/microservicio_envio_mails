@@ -18,7 +18,7 @@ export function createApp(): Express {
     next();
   });
 
-  // Instanciar repositorios
+  // Instanciar repositorios de Mongo
   const templateRepository = new MongoTemplateRepository();
   const microserviceAuthRepository = new MongoMicroserviceAuthRepository();
 

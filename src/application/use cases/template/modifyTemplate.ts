@@ -40,7 +40,7 @@ export class ModifyTemplateUseCase {
         }
       }
 
-      // Verificar que la plantilla no est� eliminada (soft delete)
+      // Verificar que la plantilla no este eliminada (soft delete)
       if (existingTemplate.deletedAt !== null) {
         return {
           success: false,
@@ -48,7 +48,7 @@ export class ModifyTemplateUseCase {
         }
       }
 
-      // 2. Validar autenticaci�n y permisos sobre el microserviceOwner
+      // 2. Validar autenticacion y permisos sobre el microserviceOwner
       const authValidation = await this.validateAuthentication(
         input.authKey,
         existingTemplate.microserviceOwner
@@ -96,7 +96,7 @@ export class ModifyTemplateUseCase {
       // 5. Guardar la plantilla actualizada en la base de datos
       await this.templateRepository.update(existingTemplate)
 
-      // 6. Retornar �xito con los datos actualizados
+      // 6. Retornar exito con los datos actualizados
       return {
         success: true,
         message: 'Template updated successfully',
@@ -119,13 +119,13 @@ export class ModifyTemplateUseCase {
   }
 
   /**
-   * Valida que el authKey sea v�lido y tenga permisos sobre el microserviceOwner
+   * Valida que el authKey sea valido y tenga permisos sobre el microserviceOwner
    */
   private async validateAuthentication(
     authKey: string,
     microserviceOwner: string
   ): Promise<{ isValid: boolean; error?: string }> {
-    // Validar que authKey no est� vac�o
+    // Validar que authKey no este vacio
     if (!authKey?.trim()) {
       return {
         isValid: false,
@@ -133,7 +133,7 @@ export class ModifyTemplateUseCase {
       }
     }
 
-    // Buscar la autenticaci�n por key
+    // Buscar la autenticacion por key
     const microserviceAuth = await this.microserviceAuthRepository.findByKey(authKey)
 
     if (microserviceAuth === null) {
