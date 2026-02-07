@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { MongoConnection } from "./infrastructure/persistence/mongodb/connection.js";
 import { createApp } from "./infrastructure/api/server.js";
+import { startEmailScheduler, stopEmailScheduler } from "./infrastructure/scheduler/emailScheduler.js";
 
 dotenv.config();
 
@@ -14,6 +15,9 @@ async function main() {
     await mongoConnection.connect(MONGODB_URI);
 
     console.log(`MongoDB conectado: ${MONGODB_URI}`);
+
+    // Iniciar el scheduler de envío de emails
+    startEmailScheduler();
 
     // Crear y iniciar el servidor Express
     const app = createApp();
@@ -30,6 +34,8 @@ async function main() {
     // Manejo de señales para graceful shutdown
     const shutdown = async (signal: string) => {
       console.log(`\n${signal} recibido, cerrando servidor...`);
+
+      stopEmailScheduler();
 
       server.close(() => {
         console.log('Servidor HTTP cerrado');

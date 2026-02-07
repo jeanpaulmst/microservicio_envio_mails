@@ -5,4 +5,9 @@
 
 export class SendEmailUseCase {
 
+    async execute() {
+        const date = new Date();
+        console.log(`Envio de mail activado! - ${date}`)
+    }
+
 } 
