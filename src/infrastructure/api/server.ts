@@ -1,6 +1,8 @@
 import express, { type Express, type Request, type Response, type NextFunction } from 'express';
+import swaggerUi from 'swagger-ui-express';
 import { createTemplateRoutes } from './routes/templateRoutes.js';
 import { createAuthRoutes } from './routes/authRoutes.js';
+import { swaggerSpec } from './swagger/swaggerSpec.js';
 import { MongoTemplateRepository } from '../persistence/mongodb/repositories/MongoTemplateRepository.js';
 import { MongoMicroserviceAuthRepository } from '../persistence/mongodb/repositories/MongoMicroserviceAuthRepository.js';
 
@@ -19,6 +21,9 @@ export function createApp(): Express {
   // Instanciar repositorios
   const templateRepository = new MongoTemplateRepository();
   const microserviceAuthRepository = new MongoMicroserviceAuthRepository();
+
+  // Swagger UI
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   // Rutas
   app.use('/api/templates', createTemplateRoutes(templateRepository, microserviceAuthRepository));
