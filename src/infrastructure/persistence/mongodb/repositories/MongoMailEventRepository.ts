@@ -1,8 +1,8 @@
 import { MailEvent, MailEventResult } from '../../../../domain/entities/mailEvent.js';
-import type { mailEventRepository } from '../../../../domain/repositories/mailEventRepository.js';
+import type { MailEventRepository } from '../../../../domain/repositories/mailEventRepository.js';
 import { MailEventModel } from '../schemas/mailEventSchema.js';
 
-export class MongoMailEventRepository implements mailEventRepository {
+export class MongoMailEventRepository implements MailEventRepository {
   async save(mailEvent: MailEvent): Promise<void> {
     await MailEventModel.create({
       emailEventId: mailEvent.emailEventId,

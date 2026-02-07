@@ -4,6 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "prebuild": "rm -rf dist",
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch",
     "start": "node dist/index.js",
@@ -27,6 +28,7 @@
     "@types/express": "^5.0.4",
     "@types/jest": "^30.0.0",
     "@types/nodemailer": "^7.0.3",
+    "@types/swagger-ui-express": "^4.1.8",
     "jest": "^30.2.0",
     "ts-jest": "^29.4.5",
     "typescript": "^5.9.3"
@@ -35,6 +37,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "mongoose": "^8.19.2",
-    "nodemailer": "^7.0.10"
+    "nodemailer": "^7.0.10",
+    "swagger-ui-express": "^5.0.1"
   }
 }

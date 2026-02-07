@@ -2,9 +2,11 @@ import express, { type Express, type Request, type Response, type NextFunction }
 import swaggerUi from 'swagger-ui-express';
 import { createTemplateRoutes } from './routes/templateRoutes.js';
 import { createAuthRoutes } from './routes/authRoutes.js';
+import { createMailEventRoutes } from './routes/mailEventRoutes.ts';
 import { swaggerSpec } from './swagger/swaggerSpec.js';
 import { MongoTemplateRepository } from '../persistence/mongodb/repositories/MongoTemplateRepository.js';
 import { MongoMicroserviceAuthRepository } from '../persistence/mongodb/repositories/MongoMicroserviceAuthRepository.js';
+import { MongoMailEventRepository } from '../persistence/mongodb/repositories/MongoMailEventRepository.js';
 
 export function createApp(): Express {
   const app = express();
@@ -21,13 +23,15 @@ export function createApp(): Express {
   // Instanciar repositorios de Mongo
   const templateRepository = new MongoTemplateRepository();
   const microserviceAuthRepository = new MongoMicroserviceAuthRepository();
+  const mailEventRepository = new MongoMailEventRepository();
 
   // Swagger UI
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   // Rutas
-  app.use('/api/templates', createTemplateRoutes(templateRepository, microserviceAuthRepository));
   app.use('/api/auth', createAuthRoutes(microserviceAuthRepository));
+  app.use('/api/templates', createTemplateRoutes(templateRepository, microserviceAuthRepository));
+  app.use('/api/mailEvents', createMailEventRoutes(mailEventRepository, templateRepository, microserviceAuthRepository));
 
   // Health check
   app.get('/health', (req: Request, res: Response) => {
