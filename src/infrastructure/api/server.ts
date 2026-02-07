@@ -2,7 +2,7 @@ import express, { type Express, type Request, type Response, type NextFunction }
 import swaggerUi from 'swagger-ui-express';
 import { createTemplateRoutes } from './routes/templateRoutes.js';
 import { createAuthRoutes } from './routes/authRoutes.js';
-import { createMailEventRoutes } from './routes/mailEventRoutes.ts';
+import { createMailEventRoutes } from './routes/mailEventRoutes.js';
 import { swaggerSpec } from './swagger/swaggerSpec.js';
 import { MongoTemplateRepository } from '../persistence/mongodb/repositories/MongoTemplateRepository.js';
 import { MongoMicroserviceAuthRepository } from '../persistence/mongodb/repositories/MongoMicroserviceAuthRepository.js';

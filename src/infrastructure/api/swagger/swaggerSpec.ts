@@ -192,6 +192,66 @@ export const swaggerSpec = {
         }
       }
     },
+    '/api/mailEvents': {
+      post: {
+        tags: ['Mail Events'],
+        summary: 'Crear evento de mail',
+        description: 'Crea un nuevo evento de envío de email asociado a un template existente. Valida que el template exista, no esté eliminado, y que templateData provea todas las variables requeridas por el template. Si no se envía scheduledFor, se asigna la fecha y hora actual.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/CreateMailEventRequest' },
+              example: {
+                templateId: 'welcome-email',
+                to: 'usuario@ejemplo.com',
+                from: 'servicio@ejemplo.com',
+                templateData: {
+                  userName: 'Juan',
+                  serviceName: 'MiApp'
+                },
+                scheduledFor: '2026-12-31T10:00:00.000Z',
+                retries: 5
+              }
+            }
+          }
+        },
+        responses: {
+          '201': {
+            description: 'Evento de mail creado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CreateMailEventResponse' }
+              }
+            }
+          },
+          '400': {
+            description: 'Error de validación (campos faltantes, formato de fecha inválido, fecha en el pasado, variables faltantes, email inválido)',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' }
+              }
+            }
+          },
+          '404': {
+            description: 'Template no encontrado o eliminado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' }
+              }
+            }
+          },
+          '500': {
+            description: 'Error interno del servidor',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' }
+              }
+            }
+          }
+        }
+      }
+    },
     '/health': {
       get: {
         tags: ['Sistema'],
@@ -279,6 +339,30 @@ export const swaggerSpec = {
           success: { type: 'boolean', example: true },
           message: { type: 'string', example: 'Microservice authentication created successfully' },
           key: { type: 'string', example: 'mi-api-key-secreta' }
+        }
+      },
+      CreateMailEventRequest: {
+        type: 'object',
+        required: ['templateId', 'to', 'from', 'templateData'],
+        properties: {
+          templateId: { type: 'string', description: 'ID del template a utilizar' },
+          to: { type: 'string', format: 'email', description: 'Dirección de email del destinatario' },
+          from: { type: 'string', format: 'email', description: 'Dirección de email del remitente' },
+          templateData: {
+            type: 'object',
+            additionalProperties: { type: 'string' },
+            description: 'Objeto con los valores para las variables del template (clave: nombre de variable, valor: texto de sustitución)'
+          },
+          scheduledFor: { type: 'string', format: 'date-time', description: 'Fecha y hora de envío programado (ISO 8601). Si no se envía, se usa la fecha y hora actual.' },
+          retries: { type: 'integer', minimum: 0, description: 'Cantidad máxima de reintentos (default: 3)' }
+        }
+      },
+      CreateMailEventResponse: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: true },
+          message: { type: 'string', example: 'Mail event created successfully' },
+          mailEventId: { type: 'string', format: 'uuid', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' }
         }
       },
       ErrorResponse: {
