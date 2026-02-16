@@ -10,6 +10,14 @@ services:
     volumes:
       - mongodb_data:/data/db
 
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
   mail-service:
     build: .
     ports:
@@ -18,6 +26,8 @@ services:
       MONGODB_URI: mongodb://admin:admin123@mongodb:27017/mail_service?authSource=admin
     depends_on:
       - mongodb
+      - rabbitmq
 
 volumes:
   mongodb_data:
+  rabbitmq_data:

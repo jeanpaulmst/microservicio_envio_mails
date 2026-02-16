@@ -49,7 +49,7 @@ export class CreateTemplateUseCase {
         }
       }
 
-      // Crear la entidad Template (esto tambi�n valida que subject y htmlBody no est�n vac�os)
+      // Crear la entidad Template (esto tambi�n valida que subject y htmlBody no estan vacios)
       const templateParams: {
         templateId: string
         subject: string
