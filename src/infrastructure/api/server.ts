@@ -7,6 +7,7 @@ import { swaggerSpec } from './swagger/swaggerSpec.js';
 import { MongoTemplateRepository } from '../persistence/mongodb/repositories/MongoTemplateRepository.js';
 import { MongoMicroserviceAuthRepository } from '../persistence/mongodb/repositories/MongoMicroserviceAuthRepository.js';
 import { MongoMailEventRepository } from '../persistence/mongodb/repositories/MongoMailEventRepository.js';
+import { startEmailScheduler } from '../scheduler/emailScheduler.js';
 
 export function createApp(): Express {
   const app = express();
@@ -32,6 +33,9 @@ export function createApp(): Express {
   app.use('/api/auth', createAuthRoutes(microserviceAuthRepository));
   app.use('/api/templates', createTemplateRoutes(templateRepository, microserviceAuthRepository));
   app.use('/api/mailEvents', createMailEventRoutes(mailEventRepository, templateRepository, microserviceAuthRepository));
+
+  // cron
+  startEmailScheduler(mailEventRepository, templateRepository);
 
   // Health check
   app.get('/health', (req: Request, res: Response) => {
