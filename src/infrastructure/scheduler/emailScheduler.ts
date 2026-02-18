@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { SendEmailUseCase } from '../../application/use cases/mailEvent/sendEmail.js';
-import type { MailEventRepository,  } from '../../domain/repositories/mailEventRepository.ts';
-import type { TemplateRepository } from '../../domain/repositories/templateRepository.ts';
+import type { MailEventRepository } from '../../domain/repositories/mailEventRepository.js';
+import type { TemplateRepository } from '../../domain/repositories/templateRepository.js';
 
 let task: cron.ScheduledTask | null = null;
 

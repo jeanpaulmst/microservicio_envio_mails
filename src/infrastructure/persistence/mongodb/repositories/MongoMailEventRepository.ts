@@ -4,17 +4,21 @@ import { MailEventModel } from '../schemas/mailEventSchema.js';
 
 export class MongoMailEventRepository implements MailEventRepository {
   async save(mailEvent: MailEvent): Promise<void> {
-    await MailEventModel.create({
-      emailEventId: mailEvent.emailEventId,
-      templateId: mailEvent.templateId,
-      to: mailEvent.to,
-      from: mailEvent.from,
-      templateData: mailEvent.templateData,
-      scheduledFor: mailEvent.scheduledFor,
-      retries: mailEvent.retries,
-      retryCount: mailEvent.retryCount,
-      result: mailEvent.result
-    });
+    await MailEventModel.updateOne(
+      { emailEventId: mailEvent.emailEventId },
+      {
+        emailEventId: mailEvent.emailEventId,
+        templateId: mailEvent.templateId,
+        to: mailEvent.to,
+        from: mailEvent.from,
+        templateData: mailEvent.templateData,
+        scheduledFor: mailEvent.scheduledFor,
+        retries: mailEvent.retries,
+        retryCount: mailEvent.retryCount,
+        result: mailEvent.result
+      },
+      { upsert: true }
+    );
   }
 
   async findById(id: string): Promise<MailEvent | null> {

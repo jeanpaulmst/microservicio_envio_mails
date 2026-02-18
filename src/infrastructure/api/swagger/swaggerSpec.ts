@@ -210,7 +210,6 @@ export const swaggerSpec = {
                   userName: 'Juan',
                   serviceName: 'MiApp'
                 },
-                scheduledFor: '2026-12-31T10:00:00.000Z',
                 retries: 5
               }
             }

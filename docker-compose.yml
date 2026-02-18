@@ -22,6 +22,8 @@ services:
     build: .
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       MONGODB_URI: mongodb://admin:admin123@mongodb:27017/mail_service?authSource=admin
     depends_on:
