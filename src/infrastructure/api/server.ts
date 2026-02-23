@@ -8,6 +8,7 @@ import { MongoTemplateRepository } from '../persistence/mongodb/repositories/Mon
 import { MongoMicroserviceAuthRepository } from '../persistence/mongodb/repositories/MongoMicroserviceAuthRepository.js';
 import { MongoMailEventRepository } from '../persistence/mongodb/repositories/MongoMailEventRepository.js';
 import { startEmailScheduler } from '../scheduler/emailScheduler.js';
+import { startRabbitConsumer } from '../rabbit/consumer.js'
 
 export function createApp(): Express {
   const app = express();
@@ -36,6 +37,9 @@ export function createApp(): Express {
 
   // cron
   startEmailScheduler(mailEventRepository, templateRepository);
+
+  //consumidor rabbit
+  startRabbitConsumer();
 
   // Health check
   app.get('/health', (req: Request, res: Response) => {

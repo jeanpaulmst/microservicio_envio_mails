@@ -4,6 +4,7 @@
     // File Layout
     "rootDir": "./src",
     "outDir": "./dist",
+    "allowJs": true,
     
 
     // Environment Settings
@@ -44,5 +45,6 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
     "moduleResolution": "NodeNext",
-  }
+  },
+  "include": ["src/**/*"]
 }

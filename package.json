@@ -25,6 +25,7 @@
   "homepage": "https://github.com/jeanpaulmst/microservicio_envio_mails#readme",
   "description": "",
   "devDependencies": {
+    "@types/amqplib": "^0.10.8",
     "@types/express": "^5.0.4",
     "@types/jest": "^30.0.0",
     "@types/node-cron": "^3.0.11",
@@ -35,6 +36,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "amqplib": "^0.10.9",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "mongoose": "^8.19.2",
