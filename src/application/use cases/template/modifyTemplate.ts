@@ -1,13 +1,14 @@
 import type { TemplateRepository } from '../../../domain/repositories/templateRepository.js'
 import type { MicroserviceAuthRepository } from '../../../domain/repositories/microserviceAuthRepository.js'
 import { validateTemplateFormat } from './shared/templateValidations.js'
+import { validateMicroserviceAuth } from '../validateMicroserviceAuth.js'
 
 export interface ModifyTemplateInput {
   templateId: string
   subject: string
   htmlBody: string
   textBody?: string
-  authKey: string // Key para autenticaci�n del microservicio
+  authKey: string
 }
 
 export interface ModifyTemplateOutput {
@@ -30,6 +31,10 @@ export class ModifyTemplateUseCase {
 
   async execute(input: ModifyTemplateInput): Promise<ModifyTemplateOutput> {
     try {
+      if (!input.authKey?.trim()) {
+        return { success: false, message: 'Authentication key is required' }
+      }
+
       // 1. Validar que la plantilla exista
       const existingTemplate = await this.templateRepository.findById(input.templateId)
 
@@ -48,17 +53,15 @@ export class ModifyTemplateUseCase {
         }
       }
 
-      // 2. Validar autenticacion y permisos sobre el microserviceOwner
-      const authValidation = await this.validateAuthentication(
+      // 2. Validar que la key sea valida y que el microservicio sea dueño de la plantilla
+      const authResult = await validateMicroserviceAuth(
         input.authKey,
-        existingTemplate.microserviceOwner
+        existingTemplate.microserviceOwner,
+        this.microserviceAuthRepository
       )
 
-      if (!authValidation.isValid) {
-        return {
-          success: false,
-          message: authValidation.error || 'Authentication failed'
-        }
+      if (!authResult.valid) {
+        return { success: false, message: authResult.error ?? 'Authentication failed' }
       }
 
       // 3. Validar el formato de los nuevos datos (sintaxis de variables)
@@ -96,7 +99,6 @@ export class ModifyTemplateUseCase {
       // 5. Guardar la plantilla actualizada en la base de datos
       await this.templateRepository.update(existingTemplate)
 
-      // 6. Retornar exito con los datos actualizados
       return {
         success: true,
         message: 'Template updated successfully',
@@ -116,49 +118,5 @@ export class ModifyTemplateUseCase {
         message: `Failed to modify template: ${errorMessage}`
       }
     }
-  }
-
-  /**
-   * Valida que el authKey sea valido y tenga permisos sobre el microserviceOwner
-   */
-  private async validateAuthentication(
-    authKey: string,
-    microserviceOwner: string
-  ): Promise<{ isValid: boolean; error?: string }> {
-    // Validar que authKey no este vacio
-    if (!authKey?.trim()) {
-      return {
-        isValid: false,
-        error: 'Authentication key is required'
-      }
-    }
-
-    // Buscar la autenticacion por key
-    const microserviceAuth = await this.microserviceAuthRepository.findByKey(authKey)
-
-    if (microserviceAuth === null) {
-      return {
-        isValid: false,
-        error: 'Invalid authentication key'
-      }
-    }
-
-    // Verificar que la autenticacion esta activa
-    if (!microserviceAuth.active) {
-      return {
-        isValid: false,
-        error: 'Authentication key is not active'
-      }
-    }
-
-    // Verificar que el microserviceOwner coincida
-    if (microserviceAuth.microserviceOwner !== microserviceOwner) {
-      return {
-        isValid: false,
-        error: 'You do not have permission to modify this template'
-      }
-    }
-
-    return { isValid: true }
   }
 }

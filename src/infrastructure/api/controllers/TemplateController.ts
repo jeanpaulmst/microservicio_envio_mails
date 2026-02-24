@@ -3,6 +3,7 @@ import { CreateTemplateUseCase } from '../../../application/use cases/template/c
 import { ModifyTemplateUseCase } from '../../../application/use cases/template/modifyTemplate.js';
 import type { TemplateRepository } from '../../../domain/repositories/templateRepository.js';
 import type { MicroserviceAuthRepository } from '../../../domain/repositories/microserviceAuthRepository.js';
+import { validateMicroserviceExistance } from '../../../application/use cases/validateMicroserviceExistance.js';
 
 export class TemplateController {
   constructor(
@@ -12,6 +13,20 @@ export class TemplateController {
 
   async createTemplate(req: Request, res: Response): Promise<void> {
     try {
+      const apiKey = req.headers['x-api-key'] as string | undefined;
+
+      if (!apiKey) {
+        res.status(401).json({ success: false, message: 'Missing x-api-key header' });
+        return;
+      }
+
+      const authResult = await validateMicroserviceExistance(apiKey, this.microserviceAuthRepository);
+
+      if (!authResult.valid) {
+        res.status(401).json({ success: false, message: 'Invalid API key' });
+        return;
+      }
+
       const { templateId, subject, htmlBody, textBody, microserviceOwner } = req.body;
 
       // Validar que los campos requeridos estén presentes
@@ -50,7 +65,7 @@ export class TemplateController {
     try {
       const { templateId } = req.params;
       const { subject, htmlBody, textBody } = req.body;
-      const authKey = req.headers['x-auth-key'] as string;
+      const authKey = req.headers['x-api-key'] as string;
 
       // Validar que los campos requeridos estén presentes
       if (!templateId) {

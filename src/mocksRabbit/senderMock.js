@@ -16,16 +16,22 @@ amqp.connect('amqp://guest:guest@localhost', function(error0, connection) {
     let queue = 'email-microservice-queue'
 
     let emailEventExample = {
-        id: "1",
-        nameEvent: "evento de envio de mail"
+      templateId: "welcome-email",
+      to: "usuario@ejemplo.com",
+      variables: {
+        userName: "Juan Pérez",
+        serviceName: "MiApp"
+      },
+      referenceId: "user-registration-12345"
     }
+    
 
     console.log("defino el exchange...")
     channel.assertExchange(exchange, 'fanout', {
       durable: false
     });
     console.log("ordeno la publicacion...")
-    channel.publish(exchange, queue, Buffer.from(JSON.stringify(emailEventExample)));
+    channel.publish(exchange, queue, { persistent: true }, Buffer.from(JSON.stringify(emailEventExample)));
     console.log(" [x] Sent %s", emailEventExample.nameEvent);
 
     channel.close(function() {

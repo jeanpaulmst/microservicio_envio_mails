@@ -1,5 +1,6 @@
 import { MicroserviceAuth } from '../../domain/entities/microserviceAuth.js'
 import type { MicroserviceAuthRepository } from '../../domain/repositories/microserviceAuthRepository.js'
+import crypto from 'crypto'
 
 export interface CreateMicroserviceAuthInput {
   key: string
@@ -34,15 +35,6 @@ export class CreateMicroserviceAuthUseCase {
         }
       }
 
-      // Verificar que la key no exista ya
-      const existingAuthByKey = await this.microserviceAuthRepository.findByKey(input.key)
-      if (existingAuthByKey !== null) {
-        return {
-          success: false,
-          message: `Microservice auth with key '${input.key}' already exists`
-        }
-      }
-
       // Verificar que el microserviceOwner no tenga ya una autenticación
       const existingAuthByOwner = await this.microserviceAuthRepository.findByMicroserviceOwner(input.microserviceOwner)
       if (existingAuthByOwner !== null) {
@@ -52,9 +44,12 @@ export class CreateMicroserviceAuthUseCase {
         }
       }
 
+      // Hashear key antes de guardarla en la bd
+      const hashed_key = crypto.createHash('sha256').update(input.key).digest('hex');
+
       // Crear la entidad MicroserviceAuth
       const microserviceAuth = MicroserviceAuth.create({
-        key: input.key,
+        key: hashed_key,
         microserviceOwner: input.microserviceOwner,
         ...(input.active !== undefined && { active: input.active })
       })
@@ -65,7 +60,6 @@ export class CreateMicroserviceAuthUseCase {
       return {
         success: true,
         message: 'Microservice authentication created successfully',
-        key: microserviceAuth.key
       }
 
     } catch (error) {

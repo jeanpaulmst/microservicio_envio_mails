@@ -17,6 +17,7 @@ export const swaggerSpec = {
         tags: ['Templates'],
         summary: 'Crear template',
         description: 'Crea un nuevo template de email con variables de sustitución ({{variable}}).',
+        security: [{ ApiKeyAuth: [] }],
         requestBody: {
           required: true,
           content: {
@@ -49,6 +50,14 @@ export const swaggerSpec = {
               }
             }
           },
+          '401': {
+            description: 'API key ausente o inválida',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' }
+              }
+            }
+          },
           '500': {
             description: 'Error interno del servidor',
             content: {
@@ -64,20 +73,14 @@ export const swaggerSpec = {
       put: {
         tags: ['Templates'],
         summary: 'Modificar template',
-        description: 'Modifica un template existente. Requiere autenticación mediante header x-auth-key. Solo el microservicio propietario puede modificar sus templates.',
+        description: 'Modifica un template existente. Requiere autenticación mediante header x-api-key. Solo el microservicio propietario puede modificar sus templates.',
+        security: [{ ApiKeyAuth: [] }],
         parameters: [
           {
             name: 'templateId',
             in: 'path',
             required: true,
             description: 'ID del template a modificar',
-            schema: { type: 'string' }
-          },
-          {
-            name: 'x-auth-key',
-            in: 'header',
-            required: true,
-            description: 'Clave de autenticación del microservicio',
             schema: { type: 'string' }
           }
         ],
@@ -112,7 +115,7 @@ export const swaggerSpec = {
             }
           },
           '401': {
-            description: 'Falta header x-auth-key',
+            description: 'API key ausente o inválida',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -197,6 +200,7 @@ export const swaggerSpec = {
         tags: ['Mail Events'],
         summary: 'Crear evento de mail',
         description: 'Crea un nuevo evento de envío de email asociado a un template existente. Valida que el template exista, no esté eliminado, y que templateData provea todas las variables requeridas por el template. Si no se envía scheduledFor, se asigna la fecha y hora actual.',
+        security: [{ ApiKeyAuth: [] }],
         requestBody: {
           required: true,
           content: {
@@ -226,6 +230,14 @@ export const swaggerSpec = {
           },
           '400': {
             description: 'Error de validación (campos faltantes, formato de fecha inválido, fecha en el pasado, variables faltantes, email inválido)',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' }
+              }
+            }
+          },
+          '401': {
+            description: 'API key ausente o inválida',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/ErrorResponse' }
@@ -277,6 +289,14 @@ export const swaggerSpec = {
     }
   },
   components: {
+    securitySchemes: {
+      ApiKeyAuth: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'x-api-key',
+        description: 'API key del microservicio registrado'
+      }
+    },
     schemas: {
       CreateTemplateRequest: {
         type: 'object',
