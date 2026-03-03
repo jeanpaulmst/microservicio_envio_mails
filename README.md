@@ -32,3 +32,13 @@ Con los contenedores corriendo, ejecutar el script mock desde la raíz del proye
 ```bash
 node src/mocksRabbit/senderMock.js
 ```
+
+## Monitoreo de RabbitMQ
+
+UI web disponible en `http://localhost:15672` (usuario y contraseña: `guest`).
+
+Para consultar el estado de la cola por terminal:
+
+```bash
+curl -s -u guest:guest http://localhost:15672/api/queues/%2F/email-microservice-queue
+```
