@@ -35,11 +35,11 @@ export function createApp(): Express {
   app.use('/api/templates', createTemplateRoutes(templateRepository, microserviceAuthRepository));
   app.use('/api/mailEvents', createMailEventRoutes(mailEventRepository, templateRepository, microserviceAuthRepository));
 
-  // cron
+  //cron
   startEmailScheduler(mailEventRepository, templateRepository);
 
   //consumidor rabbit
-  startRabbitConsumer();
+  startRabbitConsumer(mailEventRepository, templateRepository);
 
   // Health check
   app.get('/health', (req: Request, res: Response) => {

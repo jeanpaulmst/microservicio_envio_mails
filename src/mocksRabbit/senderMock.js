@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import amqp from 'amqplib/callback_api.js'
+import { randomUUID } from 'crypto'
 
 amqp.connect('amqp://guest:guest@localhost', function(error0, connection) {
   if (error0) {
@@ -9,30 +10,30 @@ amqp.connect('amqp://guest:guest@localhost', function(error0, connection) {
   }
   connection.createChannel(function(error1, channel) {
     if (error1) {
-      console.log("error0:", error1)
+      console.log("error1:", error1)
       throw error1;
     }
     let exchange = 'email-microservice-exchange';
-    let queue = 'email-microservice-queue'
 
-    let emailEventExample = {
+    let emailEventPayload = {
+      emailEventId: randomUUID(),
       templateId: "welcome-email",
       to: "usuario@ejemplo.com",
-      variables: {
+      from: "test@ejemplo.com",
+      templateData: JSON.stringify({
         userName: "Juan Pérez",
         serviceName: "MiApp"
-      },
-      referenceId: "user-registration-12345"
+      })
+      // scheduledFor: "2026-03-02T18:00:00Z"  // descomentar para envío diferido
     }
-    
 
     console.log("defino el exchange...")
     channel.assertExchange(exchange, 'fanout', {
-      durable: false
+      durable: true
     });
-    console.log("ordeno la publicacion...")
-    channel.publish(exchange, queue, { persistent: true }, Buffer.from(JSON.stringify(emailEventExample)));
-    console.log(" [x] Sent %s", emailEventExample.nameEvent);
+    console.log("publicando mensaje:", emailEventPayload)
+    channel.publish(exchange, '', Buffer.from(JSON.stringify(emailEventPayload)), { persistent: true });
+    console.log(" [x] Sent", emailEventPayload.emailEventId);
 
     channel.close(function() {
       connection.close()
