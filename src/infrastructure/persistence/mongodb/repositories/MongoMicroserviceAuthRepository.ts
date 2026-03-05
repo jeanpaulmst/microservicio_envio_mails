@@ -6,9 +6,7 @@ export class MongoMicroserviceAuthRepository implements MicroserviceAuthReposito
   async save(microserviceAuth: MicroserviceAuth): Promise<void> {
     await MicroserviceAuthModel.create({
       key: microserviceAuth.key,
-      microserviceOwner: microserviceAuth.microserviceOwner,
-      active: microserviceAuth.active,
-      createdAt: microserviceAuth.createdAt
+      active: microserviceAuth.active
     });
   }
 
@@ -21,24 +19,7 @@ export class MongoMicroserviceAuthRepository implements MicroserviceAuthReposito
 
     return MicroserviceAuth.reconstitute({
       key: doc.key,
-      microserviceOwner: doc.microserviceOwner,
-      active: doc.active,
-      createdAt: doc.createdAt
-    });
-  }
-
-  async findByMicroserviceOwner(microserviceOwner: string): Promise<MicroserviceAuth | null> {
-    const doc = await MicroserviceAuthModel.findOne({ microserviceOwner });
-
-    if (!doc) {
-      return null;
-    }
-
-    return MicroserviceAuth.reconstitute({
-      key: doc.key,
-      microserviceOwner: doc.microserviceOwner,
-      active: doc.active,
-      createdAt: doc.createdAt
+      active: doc.active
     });
   }
 
@@ -47,9 +28,7 @@ export class MongoMicroserviceAuthRepository implements MicroserviceAuthReposito
 
     return docs.map(doc => MicroserviceAuth.reconstitute({
       key: doc.key,
-      microserviceOwner: doc.microserviceOwner,
-      active: doc.active,
-      createdAt: doc.createdAt
+      active: doc.active
     }));
   }
 

@@ -3,6 +3,7 @@ import { SendEmailUseCase } from '../../application/use cases/mailEvent/sendEmai
 import type { MailEventRepository } from '../../domain/repositories/mailEventRepository.js'
 import type { TemplateRepository } from '../../domain/repositories/templateRepository.js'
 import { MailEvent } from '../../domain/entities/mailEvent.js';
+import { CreateMailEventUseCase } from '../../application/use cases/mailEvent/createMailEvent.js'
 
 
 export function startRabbitConsumer(mailEventRepository: MailEventRepository, templateRepository: TemplateRepository) {
@@ -34,6 +35,9 @@ export function startRabbitConsumer(mailEventRepository: MailEventRepository, te
 
             console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
 
+            // Instanciar caso de uso para crear evento de mail en la bd
+            const useCaseCreateMailEvent = new CreateMailEventUseCase(mailEventRepository, templateRepository)
+
             channel.consume(queue, async function(msg) {
                 if (!msg) return;
 
@@ -41,7 +45,10 @@ export function startRabbitConsumer(mailEventRepository: MailEventRepository, te
 
                 const data = JSON.parse(msg.content.toString());
 
-                const mailEvent = MailEvent.create({
+                useCaseCreateMailEvent.execute(data)
+
+                //MAL -- llamar al servicio de createMailEvent, reutilizar la logica http
+                {/*const mailEvent = MailEvent.create({
                     emailEventId: data.emailEventId,
                     templateId: data.templateId,
                     to: data.to,
@@ -51,11 +58,13 @@ export function startRabbitConsumer(mailEventRepository: MailEventRepository, te
                     ...(data.retries !== undefined && { retries: data.retries })
                 });
                 await mailEventRepository.save(mailEvent);
+                */}
 
-                if (!data.scheduledFor) {
+                //No debería haber un await en el controlador. Debería pasar por el scheduler, tanto rabbit como http
+                {/*if (!data.scheduledFor) {
                     const sendEmailUseCase = new SendEmailUseCase(mailEventRepository, templateRepository);
                     await sendEmailUseCase.execute();
-                }
+                }*/}
 
                 channel.ack(msg);
             }, {

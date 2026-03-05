@@ -1,7 +1,7 @@
 import type { TemplateRepository } from '../../../domain/repositories/templateRepository.js'
 import type { MicroserviceAuthRepository } from '../../../domain/repositories/microserviceAuthRepository.js'
 import { validateTemplateFormat } from './shared/templateValidations.js'
-import { validateMicroserviceAuth } from '../validateMicroserviceAuth.js'
+import { validateMicroserviceExistance } from '../validateMicroserviceExistance.js'
 
 export interface ModifyTemplateInput {
   templateId: string
@@ -53,15 +53,14 @@ export class ModifyTemplateUseCase {
         }
       }
 
-      // 2. Validar que la key sea valida y que el microservicio sea dueño de la plantilla
-      const authResult = await validateMicroserviceAuth(
+      // 2. Validar que la key sea válida y activa
+      const authResult = await validateMicroserviceExistance(
         input.authKey,
-        existingTemplate.microserviceOwner,
         this.microserviceAuthRepository
       )
 
       if (!authResult.valid) {
-        return { success: false, message: authResult.error ?? 'Authentication failed' }
+        return { success: false, message: 'Invalid or inactive API key' }
       }
 
       // 3. Validar el formato de los nuevos datos (sintaxis de variables)

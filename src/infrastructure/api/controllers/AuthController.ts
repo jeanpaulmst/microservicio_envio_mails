@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { CreateMicroserviceAuthUseCase } from '../../../application/use cases/createMicroserviceAuth.js';
+import { GenerateApiKey } from '../../../application/use cases/generateApiKey.js';
 import type { MicroserviceAuthRepository } from '../../../domain/repositories/microserviceAuthRepository.js';
 
 export class AuthController {
@@ -7,22 +7,11 @@ export class AuthController {
 
   async registerMicroservice(req: Request, res: Response): Promise<void> {
     try {
-      const { key, microserviceOwner, active } = req.body;
+      const { active } = req.body;
 
-      // Validar que los campos requeridos estén presentes
-      if (!key || !microserviceOwner) {
-        res.status(400).json({
-          success: false,
-          message: 'Missing required fields: key, microserviceOwner'
-        });
-        return;
-      }
-
-      const useCase = new CreateMicroserviceAuthUseCase(this.microserviceAuthRepository);
+      const useCase = new GenerateApiKey(this.microserviceAuthRepository);
       const result = await useCase.execute({
-        key,
-        microserviceOwner,
-        active
+        ...(active !== undefined && { active })
       });
 
       if (result.success) {

@@ -56,12 +56,6 @@ export class CreateMailEventUseCase {
                         message: 'Invalid scheduledFor date format: must be a valid ISO 8601 date string'
                     }
                 }
-                if (scheduledDate < new Date()) {
-                    return {
-                        success: false,
-                        message: 'scheduledFor date cannot be in the past'
-                    }
-                }
             }
 
             // Extraer variables del template y validar que templateData las provea todas
