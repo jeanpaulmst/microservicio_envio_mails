@@ -5,13 +5,15 @@
 import nodemailer from 'nodemailer'
 import type { MailEventRepository } from '../../../domain/repositories/mailEventRepository.js'
 import type { TemplateRepository } from '../../../domain/repositories/templateRepository.js'
+import type { FailedMailPublisher } from '../../../domain/repositories/failedMailPublisher.js'
 import { renderFullTemplate } from './shared/templateRenderer.js'
 
 export class SendEmailUseCase {
 
     constructor(
         private readonly mailEventRepository: MailEventRepository,
-        private readonly templateRepository: TemplateRepository
+        private readonly templateRepository: TemplateRepository,
+        private readonly failedMailPublisher: FailedMailPublisher
     ) {}
 
     async execute() {
@@ -29,6 +31,7 @@ export class SendEmailUseCase {
             }
         })
 
+        //Para eventos pendientes, eenvia 
         for (const event of pendingEvents) {
             try {
                 const template = await this.templateRepository.findById(event.templateId)
@@ -66,6 +69,7 @@ export class SendEmailUseCase {
                 event.incrementRetryCount()
                 if (!event.canRetry()) {
                     event.markAsFail()
+                    await this.failedMailPublisher.publish(event)
                 }
                 await this.mailEventRepository.save(event)
             }

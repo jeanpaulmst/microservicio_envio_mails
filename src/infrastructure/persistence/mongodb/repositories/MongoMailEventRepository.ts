@@ -77,6 +77,24 @@ export class MongoMailEventRepository implements MailEventRepository {
     }));
   }
 
+  async findFailed(): Promise<MailEvent[]> {
+    const docs = await MailEventModel.find({
+      result: MailEventResult.FAIL,
+    });
+
+    return docs.map(doc => MailEvent.reconstitute({
+      emailEventId: doc.emailEventId,
+      templateId: doc.templateId,
+      to: doc.to,
+      from: doc.from,
+      templateData: doc.templateData,
+      scheduledFor: doc.scheduledFor,
+      retries: doc.retries,
+      retryCount: doc.retryCount,
+      result: doc.result as MailEventResult
+    }));
+  }
+
   async delete(id: string): Promise<void> {
     await MailEventModel.deleteOne({ emailEventId: id });
   }

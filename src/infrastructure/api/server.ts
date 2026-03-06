@@ -9,6 +9,7 @@ import { MongoMicroserviceAuthRepository } from '../persistence/mongodb/reposito
 import { MongoMailEventRepository } from '../persistence/mongodb/repositories/MongoMailEventRepository.js';
 import { startEmailScheduler } from '../scheduler/emailScheduler.js';
 import { startRabbitConsumer } from '../rabbit/consumer.js'
+import { startFailedMailConsumer } from '../rabbit/failedConsumer.js'
 
 export function createApp(): Express {
   const app = express();
@@ -40,6 +41,7 @@ export function createApp(): Express {
 
   //consumidor rabbit
   startRabbitConsumer(mailEventRepository, templateRepository);
+  startFailedMailConsumer();
 
   // Health check
   app.get('/health', (req: Request, res: Response) => {

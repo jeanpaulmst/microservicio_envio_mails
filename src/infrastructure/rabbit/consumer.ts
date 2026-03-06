@@ -45,26 +45,12 @@ export function startRabbitConsumer(mailEventRepository: MailEventRepository, te
 
                 const data = JSON.parse(msg.content.toString());
 
+                if (typeof data.templateData === 'string') {
+                    data.templateData = JSON.parse(data.templateData);
+                }
+
+                //crear eveento de mail en la bd
                 useCaseCreateMailEvent.execute(data)
-
-                //MAL -- llamar al servicio de createMailEvent, reutilizar la logica http
-                {/*const mailEvent = MailEvent.create({
-                    emailEventId: data.emailEventId,
-                    templateId: data.templateId,
-                    to: data.to,
-                    from: data.from,
-                    templateData: data.templateData,
-                    ...(data.scheduledFor && { scheduledFor: new Date(data.scheduledFor) }),
-                    ...(data.retries !== undefined && { retries: data.retries })
-                });
-                await mailEventRepository.save(mailEvent);
-                */}
-
-                //No debería haber un await en el controlador. Debería pasar por el scheduler, tanto rabbit como http
-                {/*if (!data.scheduledFor) {
-                    const sendEmailUseCase = new SendEmailUseCase(mailEventRepository, templateRepository);
-                    await sendEmailUseCase.execute();
-                }*/}
 
                 channel.ack(msg);
             }, {

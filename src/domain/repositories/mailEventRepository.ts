@@ -5,5 +5,6 @@ export interface MailEventRepository {
   findById(id: string): Promise<MailEvent | null>
   findAll(): Promise<MailEvent[]>
   findPending(): Promise<MailEvent[]>
+  findFailed(): Promise<MailEvent[]>
   delete(id: string): Promise<void>
 }
