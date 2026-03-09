@@ -1,8 +1,6 @@
 import amqp from 'amqplib/callback_api.js'
-import { SendEmailUseCase } from '../../application/use cases/mailEvent/sendEmail.js';
 import type { MailEventRepository } from '../../domain/repositories/mailEventRepository.js'
 import type { TemplateRepository } from '../../domain/repositories/templateRepository.js'
-import { MailEvent } from '../../domain/entities/mailEvent.js';
 import { CreateMailEventUseCase } from '../../application/use cases/mailEvent/createMailEvent.js'
 
 
@@ -49,8 +47,12 @@ export function startRabbitConsumer(mailEventRepository: MailEventRepository, te
                     data.templateData = JSON.parse(data.templateData);
                 }
 
-                //crear eveento de mail en la bd
-                useCaseCreateMailEvent.execute(data)
+                //crear evento de mail en la bd
+                const result = await useCaseCreateMailEvent.execute(data)
+
+                if (!result.success) {
+                    console.error(`[CREATE MAIL EVENT ERROR] ${result.message}`)
+                }
 
                 channel.ack(msg);
             }, {

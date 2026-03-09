@@ -15,31 +15,18 @@ amqp.connect('amqp://guest:guest@localhost', function(error0, connection) {
     }
     let exchange = 'email-microservice-exchange';
 
-    let emailEventPayloadSuccess = {
+    let emailEventPayload = {
       emailEventId: randomUUID(),
-      templateId: "welcome-email",
+      templateId: "bienvenida-v1",
       to: "juanpablomasuet@gmail.com",
       from: "juanpablomasuet@gmail.com",
       templateData: JSON.stringify({
-        userName: "Alex Honnold",
-        serviceName: "Microservicio-2"
-      })
+        nombre: "Alex Honnold",
+        codigo: "ABC-123"
+      }),
+      retries: 3
       // scheduledFor: "2026-03-02T18:00:00Z"  // descomentar para envío diferido
     }
-    let emailEventPayloadFail= {
-      emailEventId: randomUUID(),
-      templateId: "welcome-email",
-      to: "email-que-no-existe@gmail.com",
-      from: "juanpablomasuet@gmail.com",
-      templateData: JSON.stringify({
-        userName: "Alex Honnold",
-        serviceName: "Microservicio-2"
-      })
-      // scheduledFor: "2026-03-02T18:00:00Z"  // descomentar para envío diferido
-    }
-
-    const type = process.argv[2]
-    let emailEventPayload = type === 'fail' ? emailEventPayloadFail : emailEventPayloadSuccess
 
     console.log("defino el exchange...")
     channel.assertExchange(exchange, 'fanout', {

@@ -1,6 +1,6 @@
 import amqp from 'amqplib/callback_api.js'
 import type { MailEvent } from '../../domain/entities/mailEvent.js'
-import type { FailedMailPublisher } from '../../domain/repositories/failedMailPublisher.js'
+import type { FailedMailPublisher } from '../../domain/ports/failedMailPublisher.js'
 
 export class RabbitFailedMailPublisher implements FailedMailPublisher {
     async publish(event: MailEvent): Promise<void> {
