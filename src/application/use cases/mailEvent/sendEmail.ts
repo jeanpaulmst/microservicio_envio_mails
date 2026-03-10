@@ -2,6 +2,7 @@
 // - busca los mails que estan en estado 'pending'
 // - SOLO SI retryCount <= retries
 // - Se conecta con el servidor SMTP y envia el mail al destinatario
+import chalk from 'chalk'
 import type { MailEventRepository } from '../../../domain/repositories/mailEventRepository.js'
 import type { TemplateRepository } from '../../../domain/repositories/templateRepository.js'
 import type { FailedMailPublisher } from '../../../domain/ports/failedMailPublisher.js'
@@ -27,7 +28,7 @@ export class SendEmailUseCase {
                 const template = await this.templateRepository.findById(event.templateId)
 
                 if (template === null || template.deletedAt !== null) {
-                    console.log(`Template '${event.templateId}' no encontrado o eliminado para evento '${event.emailEventId}'`)
+                    console.log(chalk.red(`[sendEmail] Template '${event.templateId}' no encontrado o eliminado para evento '${event.emailEventId}'`))
                     event.markAsFail()
                     await this.mailEventRepository.save(event)
                     continue
@@ -53,15 +54,15 @@ export class SendEmailUseCase {
 
                 event.markAsSuccess()
                 await this.mailEventRepository.save(event)
-                console.log(`Email enviado exitosamente: evento '${event.emailEventId}' a '${event.to}'`)
+                console.log(chalk.green(`[sendEmail] Email enviado exitosamente: evento '${event.emailEventId}' a '${event.to}'`))
 
             } catch (error: any) {
                 if (error.permanent) {
-                    console.log(`Error permanente de SMTP para evento '${event.emailEventId}' (${error.responseCode}): no se reintentará`)
+                    console.log(chalk.red(`[sendEmail] Error permanente de SMTP para evento '${event.emailEventId}' (${error.responseCode}): no se reintentará`))
                     event.markAsFail()
                     await this.failedMailPublisher.publish(event)
                 } else {
-                    console.log(`Error transitorio enviando email para evento '${event.emailEventId}':`, error.message)
+                    console.log(chalk.red(`[sendEmail] Error transitorio enviando email para evento '${event.emailEventId}': ${error.message}`))
                     event.incrementRetryCount()
                     if (!event.canRetry()) {
                         event.markAsFail()

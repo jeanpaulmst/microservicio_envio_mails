@@ -22,8 +22,6 @@ export class RabbitFailedMailPublisher implements FailedMailPublisher {
 
                     channel.assertExchange(exchange, 'fanout', { durable: true })
                     channel.publish(exchange, '', Buffer.from(JSON.stringify(payload)), { persistent: true })
-                    console.log(`[x] Failed mail event published: ${event.emailEventId}`)
-
                     channel.close(function() {
                         connection.close()
                         resolve()

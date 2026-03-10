@@ -1,11 +1,12 @@
 import amqp from 'amqplib/callback_api.js'
+import chalk from 'chalk'
 
 export function startFailedMailConsumer() {
     amqp.connect('amqp://guest:guest@rabbitmq', function(error0, connection) {
         if (error0) {
             throw error0
         }
-        console.log('failedConsumer connected successfully')
+        console.log(chalk.red('[failedConsumer] connected successfully'))
 
         connection.createChannel(function(error1, channel) {
             if (error1) {
@@ -23,15 +24,13 @@ export function startFailedMailConsumer() {
                 }
                 channel.bindQueue(q.queue, exchange, '')
 
-                console.log('[*] Waiting for failed mail events...')
-
                 channel.consume(q.queue, function(msg) {
                     if (!msg) return
 
                     const data = JSON.parse(msg.content.toString())
-                    console.error(
-                        `[MAIL FAILED] emailEventId=${data.emailEventId} | templateId=${data.templateId} | to=${data.to}`
-                    )
+                    console.error(chalk.red(
+                        `[failedConsumer]-[MAIL FAILED] emailEventId=${data.emailEventId} | templateId=${data.templateId} | to=${data.to}`
+                    ))
 
                     channel.ack(msg)
                 }, { noAck: false })
@@ -39,12 +38,12 @@ export function startFailedMailConsumer() {
         })
 
         connection.on('error', (err) => {
-            console.error('RabbitMQ failedConsumer connection error', err)
+            console.error(chalk.red('[failedConsumer] RabbitMQ failedConsumer connection error'), err)
             setTimeout(() => startFailedMailConsumer(), 5000)
         })
 
         connection.on('close', () => {
-            console.warn('RabbitMQ failedConsumer connection closed, reconnecting...')
+            console.warn(chalk.red('[failedConsumer] RabbitMQ failedConsumer connection closed, reconnecting...'))
             setTimeout(() => startFailedMailConsumer(), 5000)
         })
     })

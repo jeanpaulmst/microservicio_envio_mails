@@ -16,13 +16,13 @@ export function startEmailScheduler(mailEventRepository: MailEventRepository, te
         await sendEmailUseCase.execute();
     });
 
-    console.log('Email scheduler iniciado (cada 1 minuto)');
+    console.log('[emailScheduler] Email scheduler iniciado (cada 1 minuto)');
 }
 
 export function stopEmailScheduler(): void {
     if (task) {
         task.stop();
         task = null;
-        console.log('Email scheduler detenido');
+        console.log('[emailScheduler] Email scheduler detenido');
     }
 }

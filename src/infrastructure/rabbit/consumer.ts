@@ -1,4 +1,5 @@
 import amqp from 'amqplib/callback_api.js'
+import chalk from 'chalk'
 import type { MailEventRepository } from '../../domain/repositories/mailEventRepository.js'
 import type { TemplateRepository } from '../../domain/repositories/templateRepository.js'
 import { CreateMailEventUseCase } from '../../application/use cases/mailEvent/createMailEvent.js'
@@ -10,7 +11,7 @@ export function startRabbitConsumer(mailEventRepository: MailEventRepository, te
         if (error0) {
             throw error0;
         }
-        console.log("RabbitMQ connected successfully");
+        console.log(chalk.green("[consumer] RabbitMQ connected successfully"));
 
         connection.createChannel(function(error1, channel) {
             if (error1) {
@@ -31,7 +32,7 @@ export function startRabbitConsumer(mailEventRepository: MailEventRepository, te
             });
             channel.prefetch(1);
 
-            console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+            console.log(chalk.green("[consumer] Waiting for messages in %s. To exit press CTRL+C"), queue);
 
             // Instanciar caso de uso para crear evento de mail en la bd
             const useCaseCreateMailEvent = new CreateMailEventUseCase(mailEventRepository, templateRepository)
@@ -39,7 +40,7 @@ export function startRabbitConsumer(mailEventRepository: MailEventRepository, te
             channel.consume(queue, async function(msg) {
                 if (!msg) return;
 
-                console.log(" [x] Received %s", msg.content.toString());
+                console.log(chalk.green("[consumer] Received %s"), msg.content.toString());
 
                 const data = JSON.parse(msg.content.toString());
 
@@ -51,7 +52,7 @@ export function startRabbitConsumer(mailEventRepository: MailEventRepository, te
                 const result = await useCaseCreateMailEvent.execute(data)
 
                 if (!result.success) {
-                    console.error(`[CREATE MAIL EVENT ERROR] ${result.message}`)
+                    console.error(chalk.green(`[consumer] - [CREATE MAIL EVENT ERROR] ${result.message}`))
                 }
 
                 channel.ack(msg);
@@ -67,7 +68,7 @@ export function startRabbitConsumer(mailEventRepository: MailEventRepository, te
         });
           
         connection.on('close', () => {
-            console.warn('RabbitMQ connection closed, reconnecting...');
+            console.warn(chalk.green('[consumer] RabbitMQ connection closed, reconnecting...'));
             setTimeout(() => startRabbitConsumer(mailEventRepository, templateRepository), 5000);
         });
     });
