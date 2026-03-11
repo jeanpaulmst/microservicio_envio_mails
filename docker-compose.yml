@@ -34,6 +34,7 @@ services:
       - .env
     environment:
       MONGODB_URI: mongodb://admin:admin123@mongodb:27017/mail_service?authSource=admin
+      FORCE_COLOR: "1"
     depends_on:
       mongodb:
         condition: service_started

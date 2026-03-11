@@ -40,9 +40,9 @@ export function startRabbitConsumer(mailEventRepository: MailEventRepository, te
             channel.consume(queue, async function(msg) {
                 if (!msg) return;
 
-                console.log(chalk.green("[consumer] Received %s"), msg.content.toString());
-
                 const data = JSON.parse(msg.content.toString());
+
+                console.log(chalk.green("[consumer] Received"), `id=${data.emailEventId}`);
 
                 if (typeof data.templateData === 'string') {
                     data.templateData = JSON.parse(data.templateData);
