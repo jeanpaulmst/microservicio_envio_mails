@@ -9,6 +9,7 @@ export interface GenerateApiKeyInput {
 export interface GenerateApiKeyOutput {
   success: boolean
   message: string
+  microserviceId?: string
   key?: string
 }
 
@@ -30,6 +31,7 @@ export class GenerateApiKey {
       return {
         success: true,
         message: 'api-key created successfully',
+        microserviceId: microserviceAuth.microserviceId,
         key: rawKey
       }
     } catch (error) {

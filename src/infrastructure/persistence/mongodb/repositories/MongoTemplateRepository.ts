@@ -44,6 +44,19 @@ export class MongoTemplateRepository implements TemplateRepository {
     }));
   }
 
+  async findByOwner(microserviceOwner: string): Promise<Template[]> {
+    const docs = await TemplateModel.find({ microserviceOwner, deletedAt: null });
+
+    return docs.map(doc => Template.reconstitute({
+      templateId: doc.templateId,
+      subject: doc.subject,
+      htmlBody: doc.htmlBody,
+      textBody: doc.textBody,
+      microserviceOwner: doc.microserviceOwner,
+      deletedAt: doc.deletedAt
+    }));
+  }
+
   async update(template: Template): Promise<void> {
     await TemplateModel.updateOne(
       { templateId: template.templateId },

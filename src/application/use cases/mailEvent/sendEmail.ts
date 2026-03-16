@@ -54,7 +54,7 @@ export class SendEmailUseCase {
 
                 event.markAsSuccess()
                 await this.mailEventRepository.save(event)
-                console.log(chalk.green(`[sendEmail] Email enviado exitosamente: evento '${event.emailEventId}' a '${event.to}'`))
+                console.log(chalk.green(`[sendEmail] Email enviado exitosamente:`) + `evento '${event.emailEventId}' a '${event.to}'`)
 
             } catch (error: any) {
                 if (error.permanent) {
@@ -62,7 +62,7 @@ export class SendEmailUseCase {
                     event.markAsFail()
                     await this.failedMailPublisher.publish(event)
                 } else {
-                    console.log(chalk.red(`[sendEmail] Error transitorio enviando email para evento '${event.emailEventId}': ${error.message}`))
+                    console.log(chalk.red(`[sendEmail] Error transitorio enviando email para evento`) +` ${event.emailEventId}': ${error.message}`)
                     event.incrementRetryCount()
                     if (!event.canRetry()) {
                         event.markAsFail()

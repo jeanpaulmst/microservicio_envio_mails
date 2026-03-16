@@ -1,9 +1,29 @@
 import type { Request, Response } from 'express';
 import { CreateTemplateUseCase } from '../../../application/use cases/template/createTemplate.js';
 import { ModifyTemplateUseCase } from '../../../application/use cases/template/modifyTemplate.js';
+import { ListTemplatesUseCase } from '../../../application/use cases/template/listTemplates.js';
 import type { TemplateRepository } from '../../../domain/repositories/templateRepository.js';
 import type { MicroserviceAuthRepository } from '../../../domain/repositories/microserviceAuthRepository.js';
 import { validateMicroserviceExistance } from '../../../application/use cases/validateMicroserviceExistance.js';
+
+// Helper: valida la key y retorna el microserviceId, o responde con 401 y retorna null
+async function resolveAuth(
+  req: Request,
+  res: Response,
+  repo: MicroserviceAuthRepository
+): Promise<string | null> {
+  const apiKey = req.headers['x-api-key'] as string | undefined;
+  if (!apiKey) {
+    res.status(401).json({ success: false, message: 'Missing x-api-key header' });
+    return null;
+  }
+  const authResult = await validateMicroserviceExistance(apiKey, repo);
+  if (!authResult.valid || !authResult.microserviceId) {
+    res.status(401).json({ success: false, message: 'Invalid API key' });
+    return null;
+  }
+  return authResult.microserviceId;
+}
 
 export class TemplateController {
   constructor(
@@ -13,27 +33,16 @@ export class TemplateController {
 
   async createTemplate(req: Request, res: Response): Promise<void> {
     try {
-      const apiKey = req.headers['x-api-key'] as string | undefined;
+      const microserviceId = await resolveAuth(req, res, this.microserviceAuthRepository);
+      if (microserviceId === null) return;
 
-      if (!apiKey) {
-        res.status(401).json({ success: false, message: 'Missing x-api-key header' });
-        return;
-      }
-
-      const authResult = await validateMicroserviceExistance(apiKey, this.microserviceAuthRepository);
-
-      if (!authResult.valid) {
-        res.status(401).json({ success: false, message: 'Invalid API key' });
-        return;
-      }
-
-      const { templateId, subject, htmlBody, textBody, microserviceOwner } = req.body;
+      const { templateId, subject, htmlBody, textBody } = req.body;
 
       // Validar que los campos requeridos estén presentes
-      if (!templateId || !subject || !htmlBody || !microserviceOwner) {
+      if (!templateId || !subject || !htmlBody) {
         res.status(400).json({
           success: false,
-          message: 'Missing required fields: templateId, subject, htmlBody, microserviceOwner'
+          message: 'Missing required fields: templateId, subject, htmlBody'
         });
         return;
       }
@@ -43,7 +52,7 @@ export class TemplateController {
         templateId,
         subject,
         htmlBody,
-        microserviceOwner,
+        microserviceOwner: microserviceId,
         ...(textBody !== undefined && { textBody })
       });
 
@@ -63,18 +72,11 @@ export class TemplateController {
 
   async modifyTemplate(req: Request, res: Response): Promise<void> {
     try {
+      const microserviceId = await resolveAuth(req, res, this.microserviceAuthRepository);
+      if (microserviceId === null) return;
+
       const { templateId } = req.params;
       const { subject, htmlBody, textBody } = req.body;
-      const authKey = req.headers['x-api-key'] as string;
-
-      // Validar que los campos requeridos estén presentes
-      if (!templateId) {
-        res.status(400).json({
-          success: false,
-          message: 'Missing templateId parameter'
-        });
-        return;
-      }
 
       if (!subject || !htmlBody) {
         res.status(400).json({
@@ -84,25 +86,14 @@ export class TemplateController {
         return;
       }
 
-      if (!authKey) {
-        res.status(401).json({
-          success: false,
-          message: 'Missing authentication key in x-auth-key header'
-        });
-        return;
-      }
-
-      const useCase = new ModifyTemplateUseCase(
-        this.templateRepository,
-        this.microserviceAuthRepository
-      );
+      const useCase = new ModifyTemplateUseCase(this.templateRepository);
 
       const result = await useCase.execute({
-        templateId,
+        templateId: templateId!,
         subject,
         htmlBody,
         ...(textBody !== undefined && { textBody }),
-        authKey
+        requesterMicroserviceId: microserviceId
       });
 
       if (result.success) {
@@ -117,6 +108,24 @@ export class TemplateController {
           res.status(400).json(result);
         }
       }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({
+        success: false,
+        message: `Internal server error: ${errorMessage}`
+      });
+    }
+  }
+
+  async listTemplates(req: Request, res: Response): Promise<void> {
+    try {
+      const microserviceId = await resolveAuth(req, res, this.microserviceAuthRepository);
+      if (microserviceId === null) return;
+
+      const useCase = new ListTemplatesUseCase(this.templateRepository);
+      const result = await useCase.execute(microserviceId);
+
+      res.status(200).json(result);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       res.status(500).json({

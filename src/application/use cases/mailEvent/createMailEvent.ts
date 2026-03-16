@@ -11,6 +11,7 @@ export interface CreateMailEventInput {
     templateData: Record<string, string>
     scheduledFor?: string // ISO 8601 date string
     retries?: number
+    requesterMicroserviceId?: string // Si se provee, se valida que sea el owner del template
 }
 
 export interface CreateMailEventOutput {
@@ -43,6 +44,15 @@ export class CreateMailEventUseCase {
                 return {
                     success: false,
                     message: `Template with ID '${input.templateId}' has been deleted`
+                }
+            }
+
+            // Validar ownership si se provee un microserviceId
+            if (input.requesterMicroserviceId !== undefined &&
+                template.microserviceOwner !== input.requesterMicroserviceId) {
+                return {
+                    success: false,
+                    message: `Microservice does not have permission to use template '${input.templateId}'`
                 }
             }
 

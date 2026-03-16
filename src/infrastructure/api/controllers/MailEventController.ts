@@ -1,6 +1,5 @@
 import type { Request, Response } from 'express';
 import { CreateMailEventUseCase } from '../../../application/use cases/mailEvent/createMailEvent.js';
-import { SendEmailUseCase } from '../../../application/use cases/mailEvent/sendEmail.js';
 import type { MailEventRepository } from '../../../domain/repositories/mailEventRepository.js';
 import type { TemplateRepository } from '../../../domain/repositories/templateRepository.js';
 import type { MicroserviceAuthRepository } from '../../../domain/repositories/microserviceAuthRepository.js';
@@ -24,7 +23,7 @@ export class MailEventController {
 
             const authResult = await validateMicroserviceExistance(apiKey, this.microserviceAuthRepository);
 
-            if (!authResult.valid) {
+            if (!authResult.valid || !authResult.microserviceId) {
                 res.status(401).json({ success: false, message: 'Invalid API key' });
                 return;
             }
@@ -63,11 +62,13 @@ export class MailEventController {
                 templateData: Record<string, string>
                 scheduledFor?: string
                 retries?: number
+                requesterMicroserviceId: string
             } = {
                 templateId,
                 to,
                 from,
-                templateData
+                templateData,
+                requesterMicroserviceId: authResult.microserviceId
             };
 
             if (scheduledFor !== undefined) {

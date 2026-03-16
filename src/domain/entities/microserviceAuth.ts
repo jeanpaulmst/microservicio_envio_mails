@@ -1,5 +1,8 @@
+import { randomUUID } from 'crypto'
+
 export class MicroserviceAuth {
   private constructor(
+    private readonly _microserviceId: string,
     private readonly _key: string,
     private _active: boolean
   ) {}
@@ -13,19 +16,25 @@ export class MicroserviceAuth {
     }
 
     return new MicroserviceAuth(
+      randomUUID(),
       params.key,
       params.active !== undefined ? params.active : true
     )
   }
 
   static reconstitute(params: {
+    microserviceId: string
     key: string
     active: boolean
   }): MicroserviceAuth {
-    return new MicroserviceAuth(params.key, params.active)
+    return new MicroserviceAuth(params.microserviceId, params.key, params.active)
   }
 
   // Getters
+  get microserviceId(): string {
+    return this._microserviceId
+  }
+
   get key(): string {
     return this._key
   }

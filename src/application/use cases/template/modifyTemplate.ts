@@ -1,14 +1,12 @@
 import type { TemplateRepository } from '../../../domain/repositories/templateRepository.js'
-import type { MicroserviceAuthRepository } from '../../../domain/repositories/microserviceAuthRepository.js'
 import { validateTemplateFormat } from './shared/templateValidations.js'
-import { validateMicroserviceExistance } from '../validateMicroserviceExistance.js'
 
 export interface ModifyTemplateInput {
   templateId: string
   subject: string
   htmlBody: string
   textBody?: string
-  authKey: string
+  requesterMicroserviceId: string
 }
 
 export interface ModifyTemplateOutput {
@@ -25,16 +23,11 @@ export interface ModifyTemplateOutput {
 
 export class ModifyTemplateUseCase {
   constructor(
-    private readonly templateRepository: TemplateRepository,
-    private readonly microserviceAuthRepository: MicroserviceAuthRepository
+    private readonly templateRepository: TemplateRepository
   ) {}
 
   async execute(input: ModifyTemplateInput): Promise<ModifyTemplateOutput> {
     try {
-      if (!input.authKey?.trim()) {
-        return { success: false, message: 'Authentication key is required' }
-      }
-
       // 1. Validar que la plantilla exista
       const existingTemplate = await this.templateRepository.findById(input.templateId)
 
@@ -53,14 +46,12 @@ export class ModifyTemplateUseCase {
         }
       }
 
-      // 2. Validar que la key sea válida y activa
-      const authResult = await validateMicroserviceExistance(
-        input.authKey,
-        this.microserviceAuthRepository
-      )
-
-      if (!authResult.valid) {
-        return { success: false, message: 'Invalid or inactive API key' }
+      // 2. Validar que el microservicio sea el propietario de la plantilla
+      if (existingTemplate.microserviceOwner !== input.requesterMicroserviceId) {
+        return {
+          success: false,
+          message: `Microservice does not have permission to modify template '${input.templateId}'`
+        }
       }
 
       // 3. Validar el formato de los nuevos datos (sintaxis de variables)

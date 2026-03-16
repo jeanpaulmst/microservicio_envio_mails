@@ -5,6 +5,7 @@ import { MicroserviceAuthModel } from '../schemas/microserviceAuthSchema.js';
 export class MongoMicroserviceAuthRepository implements MicroserviceAuthRepository {
   async save(microserviceAuth: MicroserviceAuth): Promise<void> {
     await MicroserviceAuthModel.create({
+      microserviceId: microserviceAuth.microserviceId,
       key: microserviceAuth.key,
       active: microserviceAuth.active
     });
@@ -18,6 +19,7 @@ export class MongoMicroserviceAuthRepository implements MicroserviceAuthReposito
     }
 
     return MicroserviceAuth.reconstitute({
+      microserviceId: doc.microserviceId,
       key: doc.key,
       active: doc.active
     });
@@ -27,6 +29,7 @@ export class MongoMicroserviceAuthRepository implements MicroserviceAuthReposito
     const docs = await MicroserviceAuthModel.find();
 
     return docs.map(doc => MicroserviceAuth.reconstitute({
+      microserviceId: doc.microserviceId,
       key: doc.key,
       active: doc.active
     }));

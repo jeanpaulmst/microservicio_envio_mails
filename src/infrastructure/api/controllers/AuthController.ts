@@ -15,7 +15,13 @@ export class AuthController {
       });
 
       if (result.success) {
-        res.status(201).json(result);
+        res.status(201).json({
+          success: true,
+          data: {
+            microserviceId: result.microserviceId,
+            key: result.key
+          }
+        });
       } else {
         res.status(400).json(result);
       }

@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
 
 const microserviceAuthSchema = new mongoose.Schema({
+  microserviceId: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
   key: {
     type: String,
     required: true,
