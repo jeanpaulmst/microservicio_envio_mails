@@ -6,7 +6,7 @@ export function startFailedMailConsumer() {
         if (error0) {
             throw error0
         }
-        console.log(chalk.red('[failedConsumer] ') + chalk.green('connected successfully'))
+        console.log('[failedConsumer] connected successfully')
 
         connection.createChannel(function(error1, channel) {
             if (error1) {

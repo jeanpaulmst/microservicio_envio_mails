@@ -17,15 +17,15 @@ amqp.connect('amqp://guest:guest@localhost', function(error0, connection) {
 
     let emailEventPayload = {
       emailEventId: randomUUID(),
-      templateId: "bienvenida-v1",
-      to: "juanpablomasuet@gmail.com",
-      from: "juanpablomasuet@gmail.com",
+      templateId: "welcome-email",
+      to: "destinatario@ejemplo.com",
+      from: "remitente@ejemplo.com",
       templateData: JSON.stringify({
-        nombre: "Alex Honnold",
-        codigo: "ABC-123"
+        userName: "Juan",
+        serviceName: "MiApp"
       }),
       retries: 3
-      // scheduledFor: "2026-03-02T18:00:00Z"  // descomentar para envío diferido
+      // scheduledFor: "2026-12-31T23:59:00.000Z"  // descomentar para envío diferido
     }
 
     console.log("defino el exchange...")

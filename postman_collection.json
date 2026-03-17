@@ -1,0 +1,236 @@
+{
+  "info": {
+    "name": "Microservicio Envio Mails",
+    "_postman_id": "mail-service-collection",
+    "description": "Colección de endpoints del microservicio de envío de mails.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "",
+      "type": "string",
+      "description": "Se setea automáticamente al ejecutar POST /api/auth/register"
+    },
+    {
+      "key": "templateId",
+      "value": "welcome-email",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Verifica que el servicio está en ejecución."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Microservice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "if (pm.response.code === 201 && response.success && response.data && response.data.key) {",
+                  "    pm.collectionVariables.set('apiKey', response.data.key);",
+                  "    console.log('API Key seteada:', response.data.key);",
+                  "    pm.test('API Key seteada correctamente', function () {",
+                  "        pm.expect(response.data.key).to.be.a('string').and.not.empty;",
+                  "    });",
+                  "} else {",
+                  "    console.error('No se pudo obtener la API Key. Respuesta:', JSON.stringify(response));",
+                  "    pm.test('Registro exitoso', function () {",
+                  "        pm.response.to.have.status(201);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Registra un nuevo microservicio y genera una API Key. El script de test setea automáticamente la variable `apiKey` de la colección."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Templates",
+      "item": [
+        {
+          "name": "Create Template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"{{templateId}}\",\n  \"subject\": \"Bienvenido {{userName}}!\",\n  \"htmlBody\": \"<h1>Hola {{userName}}</h1><p>Gracias por registrarte en {{serviceName}}.</p>\",\n  \"textBody\": \"Hola {{userName}}, gracias por registrarte en {{serviceName}}.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/templates",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "templates"]
+            },
+            "description": "Crea un nuevo template de email. Las variables se definen con la sintaxis `{{variableName}}`."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Templates",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/templates",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "templates"]
+            },
+            "description": "Lista todos los templates del microservicio autenticado."
+          },
+          "response": []
+        },
+        {
+          "name": "Modify Template",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Bienvenido {{userName}} - actualizado\",\n  \"htmlBody\": \"<h1>Hola {{userName}}</h1><p>Gracias por registrarte en {{serviceName}}. Este es el template actualizado.</p>\",\n  \"textBody\": \"Hola {{userName}}, gracias por registrarte en {{serviceName}}. Template actualizado.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/templates/{{templateId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "templates", "{{templateId}}"]
+            },
+            "description": "Modifica un template existente. Solo el microservicio propietario puede modificarlo."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Mail Events",
+      "item": [
+        {
+          "name": "Create Mail Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"{{templateId}}\",\n  \"to\": \"destinatario@ejemplo.com\",\n  \"from\": \"remitente@ejemplo.com\",\n  \"templateData\": {\n    \"userName\": \"Juan\",\n    \"serviceName\": \"MiApp\"\n  },\n  \"retries\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/mailEvents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "mailEvents"]
+            },
+            "description": "Crea un evento de email para envío inmediato. `templateData` debe contener todos los valores de las variables del template."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Scheduled Mail Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"{{templateId}}\",\n  \"to\": \"destinatario@ejemplo.com\",\n  \"from\": \"remitente@ejemplo.com\",\n  \"templateData\": {\n    \"userName\": \"Juan\",\n    \"serviceName\": \"MiApp\"\n  },\n  \"scheduledFor\": \"2026-12-31T23:59:00.000Z\",\n  \"retries\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/mailEvents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "mailEvents"]
+            },
+            "description": "Crea un evento de email programado para una fecha/hora futura. `scheduledFor` debe ser una fecha ISO 8601 en el futuro."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

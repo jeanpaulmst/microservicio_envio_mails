@@ -11,7 +11,7 @@ export function startRabbitConsumer(mailEventRepository: MailEventRepository, te
         if (error0) {
             throw error0;
         }
-        console.log(chalk.green("[consumer] RabbitMQ connected successfully"));
+        console.log("[consumer] RabbitMQ connected successfully");
 
         connection.createChannel(function(error1, channel) {
             if (error1) {
@@ -32,7 +32,7 @@ export function startRabbitConsumer(mailEventRepository: MailEventRepository, te
             });
             channel.prefetch(1);
 
-            console.log(chalk.green("[consumer] Waiting for messages in %s. To exit press CTRL+C"), queue);
+            console.log("[consumer] Waiting for messages in %s. To exit press CTRL+C");
 
             // Instanciar caso de uso para crear evento de mail en la bd
             const useCaseCreateMailEvent = new CreateMailEventUseCase(mailEventRepository, templateRepository)
@@ -52,7 +52,7 @@ export function startRabbitConsumer(mailEventRepository: MailEventRepository, te
                 const result = await useCaseCreateMailEvent.execute(data)
 
                 if (!result.success) {
-                    console.error(chalk.green(`[consumer] - [CREATE MAIL EVENT ERROR] ${result.message}`))
+                    console.error(`[consumer] - ` + chalk.red(`[CREATE MAIL EVENT ERROR] ${result.message}`))
                 }
 
                 channel.ack(msg);
