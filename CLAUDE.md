@@ -43,10 +43,16 @@ The codebase follows strict dependency rules: **Infrastructure → Application �
 src/
 ├── domain/                    # Core business logic (no dependencies)
 │   ├── entities/             # Rich domain models with business rules
-│   └── repositories/         # Repository interfaces (contracts)
+│   ├── repositories/         # Repository interfaces (contracts)
+│   └── ports/                # External service interfaces (EmailSender, FailedMailPublisher)
 ├── application/
 │   └── use cases/            # Application services orchestrating entities
-└── infrastructure/           # NOT YET IMPLEMENTED (MongoDB, Express, etc.)
+└── infrastructure/
+    ├── api/                  # Express server, controllers, routes, Swagger
+    ├── persistence/mongodb/  # Mongoose schemas and repository implementations
+    ├── email/                # Nodemailer and stub email sender implementations
+    ├── rabbit/               # RabbitMQ consumer and publisher
+    └── scheduler/            # Cron-based email scheduler
 ```
 
 ### Domain Layer (src/domain/)
@@ -69,11 +75,16 @@ src/
   - Factory methods: `MicroserviceAuth.create()`, `MicroserviceAuth.reconstitute()`
   - Methods: `activate()`, `deactivate()`, `isAuthorized()`
 
-**Repository Interfaces** define contracts (implementations pending in infrastructure layer):
+**Domain Ports** define contracts for external services:
+
+- `EmailSender` - Interface for sending emails
+- `FailedMailPublisher` - Interface for publishing failed mail events
+
+**Repository Interfaces** define contracts implemented by the infrastructure layer:
 
 - `TemplateRepository` - CRUD for templates
-- `MailEventRepository` - CRUD for mail events
-- `MicroserviceAuthRepository` - CRUD + lookups for auth
+- `MailEventRepository` - CRUD for mail events, including `findPending()` for scheduler
+- `MicroserviceAuthRepository` - CRUD + lookup by API key
 
 ### Application Layer (src/application/use cases/)
 
@@ -83,15 +94,22 @@ src/
 
   - `CreateTemplateUseCase` - Validates variables, creates template
   - `ModifyTemplateUseCase` - Auth check, validates ownership, updates template
+  - `ListTemplatesUseCase` - Returns all non-deleted templates for a given microservice
   - `DeleteTemplateUseCase` - Placeholder (not implemented)
 
+- **Mail Event Use Cases:**
+
+  - `CreateMailEventUseCase` - Validates template existence and ownership, resolves scheduled date, persists event
+  - `SendEmailUseCase` - Executed by the scheduler; queries pending events, renders templates, sends emails, handles retries and publishes failures to RabbitMQ
+
 - **Auth Use Cases:**
-  - `GenerateApiKey` - Registers microservices with API keys
+  - `GenerateApiKey` - Registers microservices, generates UUID-based API key (stored as SHA256 hash)
+  - `ValidateMicroserviceExistance` - Validates API key against repository; used by all controllers
 
 **Shared Utilities:**
 
 - `templateValidations.ts` - Variable syntax validation functions
-- `templateRenderer.ts` - Renders templates with data substitution
+- `templateRenderer.ts` - Renders templates substituting `{{variable}}` placeholders with provided data
 
 ### Entity Patterns
 
@@ -168,32 +186,70 @@ npm test -- createTemplate.test.ts
 npm test -- --testNamePattern="should reject template with invalid variable"
 ```
 
+## Infrastructure Layer
+
+### API (src/infrastructure/api/)
+
+Express server with the following endpoints:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/auth/register` | Register a new microservice and receive an API key |
+| POST | `/api/templates` | Create a new email template |
+| PUT | `/api/templates/:templateId` | Update an existing template |
+| GET | `/api/templates` | List templates owned by the authenticated microservice |
+| POST | `/api/mailEvents` | Create a mail event (immediate or scheduled) |
+| GET | `/health` | Health check |
+| GET | `/api-docs` | Swagger UI |
+
+All endpoints except `/api/auth/register` and `/health` require the API key in the request header for authentication.
+
+### MongoDB (src/infrastructure/persistence/mongodb/)
+
+- **Connection**: Singleton via `connection.ts`
+- **Schemas**: `templateSchema`, `mailEventSchema`, `microserviceAuthSchema`
+- **Repositories**: `MongoTemplateRepository`, `MongoMailEventRepository`, `MongoMicroserviceAuthRepository` — implement the domain repository interfaces
+
+### Email (src/infrastructure/email/)
+
+- **NodemailerEmailSender** - Real SMTP implementation; classifies errors as permanent (5xx) or transitory
+- **StubEmailSender** - Development stub that simulates failures on every 2nd call and after 10 calls; used by default in the scheduler
+
+### RabbitMQ (src/infrastructure/rabbit/)
+
+- **consumer.ts** - Receives mail event messages from `email-microservice-queue` (fanout exchange) and persists them via `CreateMailEventUseCase`
+- **failedConsumer.ts** - Subscribes to `email-sending-fail-queue` and logs failed events for monitoring
+- **RabbitFailedMailPublisher** - Publishes failed mail events to `email-sending-fail-exchange`
+- Both consumers implement automatic reconnection on failure
+
+### Scheduler (src/infrastructure/scheduler/)
+
+- `emailScheduler.ts` runs `SendEmailUseCase` every 1 minute via cron (`*/1 * * * *`)
+- Uses `StubEmailSender` and `RabbitFailedMailPublisher` by default
+
 ## Current Development Status
 
 ### Implemented ✅
 
 - Domain entities with complete business logic
-- Repository interfaces
-- Core use cases (CreateTemplate, ModifyTemplate, CreateMicroserviceAuth)
+- Repository interfaces and domain ports
+- All use cases: CreateTemplate, ModifyTemplate, ListTemplates, CreateMailEvent, SendEmail, GenerateApiKey, ValidateMicroserviceExistance
 - Template validation and rendering utilities
-- Comprehensive unit tests (340+ test cases)
+- Full infrastructure layer: Express REST API, MongoDB repositories, Nodemailer, RabbitMQ integration, cron scheduler
+- Unit tests for CreateTemplate, ModifyTemplate, GenerateApiKey, and templateRenderer
 - Docker setup with MongoDB
+- Swagger documentation
 
 ### Pending Implementation 🚧
 
-- **Infrastructure Layer:**
-  - MongoDB repository implementations (Mongoose models)
-  - Express REST API controllers and routes
-  - Authentication middleware
-  - Email service integration (Nodemailer + use cases)
 - **Use Cases:**
-  - Mail event use cases (send, retry, schedule)
-  - Delete template use case
+  - `DeleteTemplateUseCase` (placeholder only)
 - **Testing:**
+  - Unit tests for ListTemplates, CreateMailEvent, SendEmail
   - Integration tests
   - E2E API tests
 
-**Note:** `src/index.ts` and `src/ejemplo.ts` contain prototype Nodemailer code NOT integrated with the architecture. These are examples only.
+**Note:** `src/ejemplo.ts` contains an HTML template example and is not integrated with the architecture.
 
 ## Key Business Rules
 

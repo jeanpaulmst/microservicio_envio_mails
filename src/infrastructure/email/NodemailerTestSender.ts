@@ -5,7 +5,7 @@ import type { EmailSender, SendMailParams } from '../../domain/ports/emailSender
 // Implementacion de servicio de envio de mail para probar casos de fallo
 // Se simula un fallo del servidor para probar logica de reintentos
 
-export class StubEmailSender implements EmailSender {
+export class NodemailerTestSender implements EmailSender {
     private callCount = 0
 
     private readonly transporter = nodemailer.createTransport({
@@ -22,7 +22,7 @@ export class StubEmailSender implements EmailSender {
         this.callCount++
         const shouldFail = this.callCount % 2 === 0 || (this.callCount > 10)
 
-        console.log(chalk.blue(`[STUB] Intento #${this.callCount} → ${params.to} | resultado: ${shouldFail ? 'FALLO' : 'ÉXITO'}`))
+        console.log(chalk.blue(`[TEST] Intento #${this.callCount} → ${params.to} | resultado: ${shouldFail ? 'FALLO' : 'ÉXITO'}`))
 
         if (shouldFail) {
             throw new Error('connect ECONNREFUSED — servidor de email no disponible')
